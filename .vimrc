@@ -1,13 +1,15 @@
 set nocompatible              " be iMproved, required
 
-filetype off
-
-" set the runtime path to include Vundle and initialize
+filetype off " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
+" Color
+Bundle 'altercation/vim-colors-solarized'
+Bundle 'romainl/Apprentice'
+
 Bundle 'gmarik/Vundle.vim'
-Bundle 'kien/ctrlp.vim'
+Bundle 'ctrlpvim/ctrlp.vim'
 Bundle 'mileszs/ack.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'jistr/vim-nerdtree-tabs'
@@ -15,7 +17,6 @@ Bundle 'ervandew/supertab'
 Bundle 'scrooloose/syntastic'
 Bundle 'junegunn/vim-easy-align'
 Bundle 'tomtom/tcomment_vim'
-Bundle 'Yggdroot/indentLine'
 Bundle 'tpope/vim-unimpaired'
 Bundle 'tpope/vim-surround'
 
@@ -35,19 +36,35 @@ Bundle 'kchmck/vim-coffee-script'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'wting/rust.vim'
 Bundle 'fatih/vim-go'
+Bundle 'pangloss/vim-javascript'
 Bundle 'jimenezrick/vimerl'
+Bundle 'zah/nim.vim'
+Bundle 'lambdatoast/elm.vim'
+Bundle 'racer-rust/vim-racer'
+Bundle 'leafgarland/typescript-vim'
+Bundle 'othree/yajs.vim'
 
 Bundle 'bling/vim-airline'
 Bundle 'bronson/vim-trailing-whitespace'
+" Bundle 'flowtype/vim-flow'
+" Bundle 'mxw/vim-jsx'
 
-" api doc
-Bundle 'kylef/apiblueprint.vim'
+Bundle 'majutsushi/tagbar'
+
+Bundle 'Valloric/YouCompleteMe'
+
+" buffer
+Bundle 'jeetsukumaran/vim-buffergator'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
 
 set backspace=indent,eol,start
+
+set background=dark
+colorscheme solarized
+let g:solarized_termcolors=256
 
 syntax on
 
@@ -60,7 +77,9 @@ map <C-l> <C-w>l
 map <C-t> <C-w>T
 
 " set guifont=Meslo\ LG\ M\ for\ Powerline:h15
-set guifont=Source\ Code\ Pro\ for\ Powerline:h15
+set guifont=Source\ Code\ Pro\ for\ Powerline:h14
+" set guifont=Fira\ Mono\ for\ Powerline:h14
+" set guifont=Inconsolata-G\ for\ Powerline:h14
 
 set number
 
@@ -201,6 +220,12 @@ let g:ackprg = 'ag --nogroup --nocolor --column'
 " airline
 " let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
+" let g:airline#extensions#tabline#enabled = 1
+" let g:airline_theme = 'badwolf'
+
+" Show just the filename
+let g:airline#extensions#tabline#fnamemod = ':t'
+
 set laststatus=2
 
 " ctrlp
@@ -208,6 +233,19 @@ let g:ctrlp_custom_ignore = {
   \ 'dir':  '\v[\/]\.(git|hg|svn)$|node_modules|components|log',
   \ 'file': '\v\.(exe|so|dll)$',
   \ }
+" Use the nearest .git directory as the cwd
+" This makes a lot of sense if you are working on a project that is in
+" version
+" control. It also supports works with .svn, .hg, .bzr.
+let g:ctrlp_working_path_mode = 'r'
+
+" Use a leader instead of the actual named binding
+nmap <leader>p :CtrlP<cr>
+
+" Easy bindings for its various modes
+nmap <leader>bb :CtrlPBuffer<cr>
+nmap <leader>bm :CtrlPMixed<cr>
+nmap <leader>bs :CtrlPMRU<cr>
 
 " nerdtree
 " cursor set to left
@@ -235,6 +273,15 @@ vmap <Enter> <Plug>(EasyAlign)
 " " Start interactive EasyAlign for a motion/text object (e.g. <Leader>aip)
 nmap <Leader>a <Plug>(EasyAlign)
 
-" molokai color scheme
-color molokai
+" set background=dark
+" colorscheme solarized
+colorscheme apprentice
+
 let g:rehash256 = 1
+
+set hidden
+let g:racer_cmd = "/Users/sen/code/github/racer/target/release/racer"
+let $RUST_SRC_PATH="/Users/sen/code/src/rustc-1.3.0/src"
+
+let g:tagbar_left=1
+nmap <F8> :TagbarToggle<CR>
