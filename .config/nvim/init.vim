@@ -16,9 +16,10 @@ Plug 'airblade/vim-gitgutter' " git
 Plug 'scrooloose/nerdtree'
 Plug 'jistr/vim-nerdtree-tabs'
 Plug 'junegunn/vim-easy-align'
-Plug 'tomtom/tcomment_vim'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-vinegar'
+Plug 'tpope/vim-commentary'
 Plug 'haya14busa/incsearch.vim'
 Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'tomtom/tlib_vim'
@@ -26,6 +27,7 @@ Plug 'garbas/vim-snipmate'
 Plug 'honza/vim-snippets'
 Plug 'sheerun/vim-polyglot'
 
+" run cmd aysnc
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-haml'
 Plug 'slim-template/vim-slim'
@@ -44,6 +46,15 @@ Plug 'ntpeters/vim-better-whitespace'
 
 " color
 Plug 'joshdick/onedark.vim'
+Plug 'rakr/vim-one'
+
+" indent line
+Plug 'Yggdroot/indentLine'
+
+" Plug 'ap/vim-buftabline'
+
+" Plug 'kyazdani42/nvim-web-devicons'
+" Plug 'romgrk/barbar.nvim'
 
 " autocomplete
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -51,9 +62,9 @@ call plug#end()            " required
 
 filetype plugin indent on    " required
 
-" set background=dark
-colorscheme onedark
-let g:onedark_termcolors=256
+set background=dark
+colorscheme one "onedark
+" let g:onedark_termcolors=256
 " let g:solarized_termcolors=256
 
 syntax on
@@ -79,6 +90,9 @@ set shiftwidth=2
 set softtabstop=2
 set smarttab
 set expandtab
+
+" true colors are required for vim in terminal
+set termguicolors
 
 " clean whitespace
 autocmd FileType c,cpp,haml,ruby,ru,javascript,coffee,slim autocmd BufWritePre <buffer> :%s/\s\+$//e
@@ -126,8 +140,10 @@ let g:lightline = {
       \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'relativepath', 'modified' ] ],
       \   'right': [[ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ]],
       \ },
-      \ 'colorscheme': 'onedark',
+      \ 'colorscheme': 'one',
       \ }
+
+" onedark
 
 " disable python check
 let g:loaded_python_provider = 0
@@ -136,11 +152,11 @@ vnoremap <leader>g y<Esc>:Rg <C-R>"<CR>
 nnoremap <leader>g :Rg 
 
 " buffers
-function! s:buflist()
-  redir => ls
+function! s:list_buffers()
+  redir => list
   silent ls
   redir END
-  return split(ls, '\n')
+  return split(list, "\n")
 endfunction
 
 function! s:bufopen(e)
@@ -153,12 +169,30 @@ nnoremap Q :bd<CR>
 nnoremap <C-w> :bp<cr>:bd #<cr> " :bd will close all buffers bug
 nnoremap <Leader>, :Buffers<CR> " browse buffers
 nnoremap <silent> <Leader>b :call fzf#run({
-\   'source':  reverse(<sid>buflist()),
+\   'source':  reverse(<sid>list_buffers()),
 \   'sink':    function('<sid>bufopen'),
 \   'options': '+m',
-\   'down':    len(<sid>buflist()) + 2
+\   'down':    len(<sid>list_buffers()) + 2
 \ })<CR>
+
+function! s:delete_buffers(lines)
+  execute 'bwipeout' join(map(a:lines, {_, line -> split(line)[0]}))
+endfunction
+
+" delete buffer with multi selection
+command! BD call fzf#run(fzf#wrap({
+  \ 'source': s:list_buffers(),
+  \ 'sink*': { lines -> s:delete_buffers(lines) },
+  \ 'options': '--multi --reverse --bind ctrl-a:select-all+accept'
+\ }))
+
+" reload vim config
+nnoremap <leader>sv :source $MYVIMRC<CR>
 
 let g:LanguageClient_serverCommands = {
       \ 'rust': ['rust-analyzer'],
       \ }
+
+nnoremap <Leader>t :!rails test %<CR>
+" make vertsplit invisible
+"let g:equinusocio_material_hide_vertsplit = 1
