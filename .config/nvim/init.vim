@@ -193,6 +193,6 @@ let g:LanguageClient_serverCommands = {
       \ 'rust': ['rust-analyzer'],
       \ }
 
-nnoremap <Leader>t :!rails test %<CR>
+nnoremap <Leader>t :!rails test % --backtrace<CR>
 " make vertsplit invisible
 "let g:equinusocio_material_hide_vertsplit = 1
