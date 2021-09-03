@@ -7,14 +7,19 @@ filetype off " set the runtime path to include Vundle and initialize
 " set rtp+=/usr/local/opt/fzf
 
 call plug#begin('~/.vim/plugged')
+
+" file explorer
+Plug 'kyazdani42/nvim-web-devicons' " for file icons
+Plug 'kyazdani42/nvim-tree.lua'
+
 Plug 'jiangmiao/auto-pairs' " autopair
 Plug 'romainl/Apprentice'
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
 Plug 'jremmen/vim-ripgrep'
 Plug 'airblade/vim-gitgutter' " git
-Plug 'scrooloose/nerdtree'
-Plug 'jistr/vim-nerdtree-tabs'
+" Plug 'scrooloose/nerdtree'
+" Plug 'jistr/vim-nerdtree-tabs'
 Plug 'junegunn/vim-easy-align'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-surround'
@@ -49,7 +54,7 @@ Plug 'joshdick/onedark.vim'
 Plug 'rakr/vim-one'
 
 " indent line
-Plug 'Yggdroot/indentLine'
+" Plug 'Yggdroot/indentLine'
 
 " Plug 'ap/vim-buftabline'
 
@@ -63,7 +68,9 @@ call plug#end()            " required
 filetype plugin indent on    " required
 
 set background=dark
-colorscheme one "onedark
+colorscheme one
+let g:airline_theme='one'
+" colorscheme one "onedark
 " let g:onedark_termcolors=256
 " let g:solarized_termcolors=256
 
@@ -91,8 +98,10 @@ set softtabstop=2
 set smarttab
 set expandtab
 
-" true colors are required for vim in terminal
-set termguicolors
+" terminal
+set notermguicolors
+"iterm2, kitty
+" set termguicolors
 
 " clean whitespace
 autocmd FileType c,cpp,haml,ruby,ru,javascript,coffee,slim autocmd BufWritePre <buffer> :%s/\s\+$//e
@@ -112,12 +121,18 @@ nnoremap <C-l> <C-w>l
 
 nmap <C-p> :FZF<cr>
 
+" nvim-tree.lua
+let g:nvim_tree_side = 'right'
+nnoremap <leader>n :NvimTreeToggle<CR>
+nnoremap <leader>r :NvimTreeRefresh<CR>
+nnoremap <leader>m :NvimTreeFindFile<CR>
+
 " nerdtree
-map <Leader>n <plug>NERDTreeTabsToggle<CR>
-let g:nerdtree_tabs_autoclose=1
-let g:NERDTreeWinPos = "right"
-let g:nerdtree_tabs_open_on_gui_startup=0
-let NERDTreeShowHidden=1
+" map <Leader>n <plug>NERDTreeTabsToggle<CR>
+" let g:nerdtree_tabs_autoclose=1
+" let g:NERDTreeWinPos = "right"
+" let g:nerdtree_tabs_open_on_gui_startup=0
+" let NERDTreeShowHidden=1
 
 " go
 autocmd FileType go set tabstop=4|set shiftwidth=4|set expandtab
@@ -196,3 +211,4 @@ let g:LanguageClient_serverCommands = {
 nnoremap <Leader>t :!rails test % --backtrace<CR>
 " make vertsplit invisible
 "let g:equinusocio_material_hide_vertsplit = 1
+nnoremap <Leader>f :NERDTreeFind<CR>
