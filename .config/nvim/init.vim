@@ -14,9 +14,10 @@ Plug 'kyazdani42/nvim-tree.lua'
 
 Plug 'jiangmiao/auto-pairs' " autopair
 Plug 'romainl/Apprentice'
-Plug '/usr/local/opt/fzf'
-Plug 'junegunn/fzf' ", { 'do': { -> fzf#install() } }
-Plug 'jremmen/vim-ripgrep'
+" Plug '/usr/local/opt/fzf'
+"Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+"Plug 'junegunn/fzf.vim'
+" Plug 'jremmen/vim-ripgrep'
 Plug 'airblade/vim-gitgutter' " git
 " Plug 'scrooloose/nerdtree'
 " Plug 'jistr/vim-nerdtree-tabs'
@@ -45,6 +46,8 @@ Plug 'pangloss/vim-javascript'
 Plug 'jimenezrick/vimerl'
 Plug 'lambdatoast/elm.vim'
 Plug 'othree/yajs.vim'
+Plug 'tomlion/vim-solidity'
+Plug 'ray-x/go.nvim'
 
 Plug 'itchyny/lightline.vim'
 Plug 'ntpeters/vim-better-whitespace'
@@ -52,6 +55,12 @@ Plug 'ntpeters/vim-better-whitespace'
 " color
 Plug 'joshdick/onedark.vim'
 Plug 'rakr/vim-one'
+
+Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
+
+Plug 'akinsho/bufferline.nvim', { 'tag': 'v2.*' }
+
+Plug 'wellle/targets.vim'
 
 " indent line
 " Plug 'Yggdroot/indentLine'
@@ -63,13 +72,30 @@ Plug 'rakr/vim-one'
 
 " autocomplete
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" github copilot
+" Plug 'github/copilot.vim'
+
+" highlight
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+
+" replace fzf
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+
+Plug 'neovim/nvim-lspconfig'
+
 call plug#end()            " required
+
+lua require'nvim-tree'.setup()
 
 filetype plugin indent on    " required
 
 set background=dark
-colorscheme one
-let g:airline_theme='one'
+
+" colorscheme one
+colorscheme tokyonight
+let g:airline_theme='tokyonight'
 " colorscheme one "onedark
 " let g:onedark_termcolors=256
 " let g:solarized_termcolors=256
@@ -99,9 +125,27 @@ set smarttab
 set expandtab
 
 " terminal
-set notermguicolors
+" set notermguicolors
 "iterm2, kitty
 " set termguicolors
+set termguicolors
+lua << EOF
+require("bufferline").setup{
+  options = {
+    indicator_style = 'icon',
+    separator_style = { '', '' },
+    tab_size = 0,
+    buffer_close_icon = '',
+    modified_icon = '',
+    close_icon = '',
+  },
+  highlights = {
+    buffer_selected = {
+      italic = false
+    },
+  },
+}
+EOF
 
 " clean whitespace
 autocmd FileType c,cpp,haml,ruby,ru,javascript,coffee,slim autocmd BufWritePre <buffer> :%s/\s\+$//e
@@ -119,7 +163,7 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
-nmap <C-p> :FZF<cr>
+" nmap <C-p> :FZF<cr>
 
 " nvim-tree.lua
 let g:nvim_tree_side = 'right'
@@ -155,7 +199,10 @@ let g:lightline = {
       \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'relativepath', 'modified' ] ],
       \   'right': [[ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ]],
       \ },
-      \ 'colorscheme': 'one',
+      \ 'colorscheme': 'tokyonight',
+      \ 'enable': {
+      \   'tabline': 0
+      \ }
       \ }
 
 " onedark
@@ -163,8 +210,8 @@ let g:lightline = {
 " disable python check
 let g:loaded_python_provider = 0
 
-vnoremap <leader>g y<Esc>:Rg <C-R>"<CR>
-nnoremap <leader>g :Rg 
+"vnoremap <leader>g y<Esc>:Rg <C-R>"<CR>
+"nnoremap <leader>g :Rg<CR>
 
 " buffers
 function! s:list_buffers()
@@ -182,13 +229,15 @@ nnoremap <S-N> :bnext<CR>
 nnoremap <S-P> :bprev<CR>
 nnoremap Q :bd<CR>
 nnoremap <C-w> :bp<cr>:bd #<cr> " :bd will close all buffers bug
-nnoremap <Leader>, :Buffers<CR> " browse buffers
-nnoremap <silent> <Leader>b :call fzf#run({
-\   'source':  reverse(<sid>list_buffers()),
-\   'sink':    function('<sid>bufopen'),
-\   'options': '+m',
-\   'down':    len(<sid>list_buffers()) + 2
-\ })<CR>
+
+" browse buffers
+"nnoremap <Leader>b :Buffers<CR>
+" nnoremap <silent> <Leader>b :call fzf#run({
+" \   'source':  reverse(<sid>list_buffers()),
+" \   'sink':    function('<sid>bufopen'),
+" \   'options': '+m',
+" \   'down':    len(<sid>list_buffers()) + 2
+" \ })<CR>
 
 function! s:delete_buffers(lines)
   execute 'bwipeout' join(map(a:lines, {_, line -> split(line)[0]}))
@@ -211,4 +260,123 @@ let g:LanguageClient_serverCommands = {
 nnoremap <Leader>t :!rails test % --backtrace<CR>
 " make vertsplit invisible
 "let g:equinusocio_material_hide_vertsplit = 1
-nnoremap <Leader>f :NERDTreeFind<CR>
+" nnoremap <Leader>f :NERDTreeFind<CR>
+
+" function! RipgrepFzf(query, fullscreen)
+"   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
+"   let initial_command = printf(command_fmt, shellescape(a:query))
+"   let reload_command = printf(command_fmt, '{q}')
+"   let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+"   call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
+" endfunction
+
+command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
+let g:fzf_preview_window = ['right:50%', 'ctrl-/']
+
+" Find files using Telescope command-line sugar.
+nnoremap <C-p> <cmd>Telescope find_files<cr>
+nnoremap <leader>g <cmd>Telescope live_grep<cr>
+nnoremap <leader>b <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+
+lua << EOF
+function vim.getVisualSelection()
+	vim.cmd('noau normal! "vy"')
+	local text = vim.fn.getreg('v')
+	vim.fn.setreg('v', {})
+
+	text = string.gsub(text, "\n", "")
+	if #text > 0 then
+		return text
+	else
+		return ''
+	end
+end
+
+
+local keymap = vim.keymap.set
+local tb = require('telescope.builtin')
+local opts = { noremap = true, silent = true }
+
+-- keymap('n', '<leader>b', ':Telescope current_buffer_fuzzy_find<cr>', opts)
+-- keymap('v', '<leader>b', function()
+-- 	local text = vim.getVisualSelection()
+--	tb.current_buffer_fuzzy_find({ default_text = text })
+-- end, opts)
+
+keymap('n', '<leader>g', ':Telescope live_grep<cr>', opts)
+keymap('v', '<leader>g', function()
+	local text = vim.getVisualSelection()
+	tb.live_grep({ default_text = text })
+end, opts)
+
+local telescope = require("telescope")
+local actions = require("telescope.actions")
+
+telescope.setup({
+  defaults = {
+    mappings = {
+      i = {
+        ["<C-j>"] = actions.move_selection_next,
+        ["<C-k>"] = actions.move_selection_previous,
+      },
+    },
+  },
+})
+EOF
+
+lua << EOF
+require'lspconfig'.solargraph.setup{}
+EOF
+
+lua << EOF
+local nvim_lsp = require('lspconfig')
+
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+
+  --Enable completion triggered by <c-x><c-o>
+  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  local opts = { noremap=true, silent=true }
+
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+  buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  buf_set_keymap('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+  buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
+  buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
+  buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
+  buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
+  buf_set_keymap('n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
+  buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
+  buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
+  buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
+  buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
+
+end
+
+-- Use a loop to conveniently call 'setup' on multiple servers and
+-- map buffer local keybindings when the language server attaches
+local servers = { "solargraph" }
+for _, lsp in ipairs(servers) do
+  nvim_lsp[lsp].setup {
+	on_attach = on_attach,
+	flags = {
+	  debounce_text_changes = 150,
+	}
+  }
+end
+EOF
+
+nnoremap <C-S-s> :NvimTreeFindFile<cr>
+vmap <C-y> "+y
